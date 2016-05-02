@@ -53,7 +53,7 @@ public class Execute extends SqlGenImpl{
 		clientes.buscar(1);
 
 		//Altera o objeto id 1
-		c1.setNome("Gabriel");
+		c1.setNome("Valesan");
 		clientes.atualizar(c1);
 		PreparedStatement pu = getSqlUpdateById(con, c1);
 
@@ -77,7 +77,7 @@ public class Execute extends SqlGenImpl{
 
 	private void AbrirConexao(){
 			try{
-				String url = "jdbc:h2:./BancoPontin";
+				String url = "jdbc:h2:./BancoValesan";
 				String user = "sa";
 				String pass = "sa";
 				con = DriverManager.getConnection(url, user, pass);
@@ -89,7 +89,7 @@ public class Execute extends SqlGenImpl{
 	}
 
 	public static void main(String[] args) throws SQLException{
-		System.out.println("-----------------|Mecânismo Genérico para persistência de objetos|-----------------\n");
+		System.out.println("----|Mecânismo Genérico para persistência de objetos|----\n");
 		new Execute();
 	}
 
