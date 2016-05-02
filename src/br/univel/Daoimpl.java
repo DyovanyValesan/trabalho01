@@ -1,49 +1,167 @@
 package br.univel;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
-public class Daoimpl<T, K> implements Dao<T, K> {
+import br.univel.Dao;
+
+public class DaoImpl<T, Integer> implements Dao<T, Integer>{
+
+	private Class<T> classe;
+
+	//Vetor que será utilizado para o salvamento dos três clientes (objetos).
+	private Object[] vetor = new Object[100];
+
+	//Contador de itens guardados no vetor acima;
+	private int idx = 0;
 
 	@Override
-	public void salvar(T t) {
-		SqlGen s = new SqlGenImpl();
-		s.getSqlInsert(con, obj);
-	}
-	@Override
-	public void atualizar(T t) {
-		SqlGen s = new SqlGenImpl();
-		s.getSqlUpdateById(con, obj);
+	public void Salvar(T t) {
+
+		int i = 0;
+		vetor[idx++] = t;
+
+		Class<?> aClass = t.getClass();
+		String nomeClasse = t.getClass().getSimpleName();
+		classe = (Class<T>) aClass;
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("INSERT INTO ").append(nomeClasse).append(" (");
+
+
+		Field[] campos = aClass.getDeclaredFields();
+
+
+		for (Field field : campos) {
+
+			try {
+
+				field.setAccessible(true);
+
+				String nome = field.getName();
+
+				if(i == campos.length-1){
+					sql.append(nome).append(")");
+				}else{
+					sql.append(nome).append(", ");
+				}
+
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			}
+
+			i++;
+		}
+
+		i = 0;
+
+		sql.append(" VALUES (");
+		for (Field field : campos) {
+
+			try {
+
+				field.setAccessible(true);
+
+				Object valor = field.get(t);
+
+				if(i == campos.length-1){
+					sql.append(valor).append(")");
+				}else{
+					sql.append(valor).append(", ");
+				}
+
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			i++;
+		}
+
 	}
 
 	@Override
-	public void excluir(K k) {
-		SqlGen s = new SqlGenImpl();
-		s.getDropTable(con, obj)
-	}
+	public T buscar(Integer k) {
 
-	@Override
-	public List<T> listarTodos() {
-		// TODO Auto-generated method stub
+		String cl = vetor[(int) k].getClass().getSimpleName();
+		StringBuilder sql = new StringBuilder();
+
+		sql.append("SELECT FROM ").append(cl).append(" WHERE ID = ").append(k);
+
 		return null;
 	}
 
 	@Override
-	public T buscar(K k) {
-		SqlGen s = new SqlGenImpl();
-		s.getSqlSelectAll(con, obj);
+	public void atualizar(T t) {
+
+		int i = 0;
+		Class<?> aClass = t.getClass();
+		String nomeClasse = t.getClass().getSimpleName();
+		classe = (Class<T>) aClass;
+
+		StringBuilder sql = new StringBuilder();
+		sql.append("UPDATE ").append(nomeClasse).append(" SET ");
+
+		Field[] campos = aClass.getDeclaredFields();
+
+		try {
+
+			for (Field field : campos) {
+
+				try {
+
+					field.setAccessible(true);
+
+					Object valor = field.get(t);
+					String nome = field.getName();
+
+
+					if(i != campos.length-1){
+						sql.append(nome).append("='").append(valor).append("', ");
+					}else{
+						sql.append(nome).append("='").append(valor).append("';");
+					}
+
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+
+				i++;
+			}
+
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+
 	}
-	public static void main(String[] args) {
-		SqlGen s = new SqlGenImpl();
-	}
+
 	@Override
-	public void create(T t) {
-		SqlGen s = new SqlGenImpl();
-		s.getCreateTable(con, obj);
+	public void excluir(Integer k) {
+
+		String cl = vetor[(int) k].getClass().getSimpleName();
+		StringBuilder sql = new StringBuilder();
+
+		sql.append("DELETE FROM ").append(cl).append(" WHERE ID = ").append(k);
+
 	}
+
 	@Override
-	public void delete(T t) {
-		SqlGen s = new SqlGenImpl();
-		s.getSqlDeleteById(con, obj);
+	public List<T> listarTodos() {
+
+		StringBuilder sql = new StringBuilder();
+
+		sql.append("SELECT * FROM ").append(classe.getSimpleName());
+
+		return null;
+	}
+
+	@Override
+	public void salvar(T t) {
+		// TODO Auto-generated method stub
+
 	}
 
 }
