@@ -3,41 +3,50 @@ package br.univel;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
-public class SqlGenImpl extends SqlGen{
+import br.univel.Coluna;
+import br.univel.Tabela;
+
+public class SqlGenImpl extends SqlGen {
+
 
 	@Override
 	protected String getCreateTable(Connection con, Object obj) {
-		Class<Cliente> cl = (Class<Cliente>) obj.getClass();
-		try {
-
-			StringBuilder sb = new StringBuilder();
-
-			// Declaração da tabela.
+		
+		StringBuilder sql = new StringBuilder();
+		Class<Object> cl = (Class<Object>) obj.getClass();
+		
+		try{
+			
+			//Declaração da tabela
 			{
+				
 				String nomeTabela;
 				if (cl.isAnnotationPresent(Tabela.class)) {
 					Tabela anotacaoTabela = cl.getAnnotation(Tabela.class);
 					nomeTabela = anotacaoTabela.value();
-				} else {
+				}else{
 					nomeTabela = cl.getSimpleName().toUpperCase();
 				}
-
-				sb.append("CREATE TABLE ").append(nomeTabela).append(" (");
+				sql.append("CREATE TABLE ").append(nomeTabela).append(" (");
 			}
-
+			
 			Field[] atributos = cl.getDeclaredFields();
-
-			// Declaração das colunas
+			
+			
+			//Declaração das colunas
 			{
-				for (int i = 0; i < atributos.length; i++) {
-
+				
+				for(int i = 0; i < atributos.length; i++){
+					
 					Field field = atributos[i];
-
+					
 					String nomeColuna;
 					String tipoColuna;
-
+					
 					if (field.isAnnotationPresent(Coluna.class)) {
 						Coluna anotacaoColuna = field.getAnnotation(Coluna.class);
 
@@ -50,7 +59,7 @@ public class SqlGenImpl extends SqlGen{
 					} else {
 						nomeColuna = field.getName().toUpperCase();
 					}
-
+					
 					Class<?> tipoParametro = field.getType();
 
 					if (tipoParametro.equals(String.class)) {
@@ -64,17 +73,17 @@ public class SqlGenImpl extends SqlGen{
 					}
 
 					if (i > 0) {
-						sb.append(",");
+						sql.append(",");
 					}
-
-					sb.append("\n\t").append(nomeColuna).append(' ').append(tipoColuna);
+					
+					sql.append("\n\t").append(nomeColuna).append(' ').append(tipoColuna);
 				}
 			}
-
+			
 			// Declaração das chaves primárias
 			{
 
-				sb.append(",\n\tPRIMARY KEY( ");
+				sql.append(",\n\tPRIMARY KEY( ");
 
 				for (int i = 0, achou = 0; i < atributos.length; i++) {
 
@@ -87,13 +96,13 @@ public class SqlGenImpl extends SqlGen{
 						if (anotacaoColuna.pk()) {
 
 							if (achou > 0) {
-								sb.append(", ");
+								sql.append(", ");
 							}
 
 							if (anotacaoColuna.nome().isEmpty()) {
-								sb.append(field.getName().toUpperCase());
+								sql.append(field.getName().toUpperCase());
 							} else {
-								sb.append(anotacaoColuna.nome());
+								sql.append(anotacaoColuna.nome());
 							}
 
 							achou++;
@@ -102,42 +111,40 @@ public class SqlGenImpl extends SqlGen{
 					}
 				}
 
-				sb.append(" )");
+				sql.append(" )");
 			}
 
-			sb.append("\n);");
-
-			return sb.toString();
-
+			sql.append("\n);");
+			
+			System.out.println(sql);
+			
 		} catch (SecurityException e) {
 			throw new RuntimeException(e);
 		}
+		return sql.toString();
 	}
 
 	@Override
 	protected String getDropTable(Connection con, Object obj) {
-		Class<Cliente> cl = (Class<Cliente>) obj.getClass();
-		StringBuilder sb = new StringBuilder();
-
-		String nomeTabela;
-
-		if (cl.isAnnotationPresent(Tabela.class)) {
-			Tabela anotacaoTabela = cl.getAnnotation(Tabela.class);
-			nomeTabela = anotacaoTabela.value();
-		} else {
-			nomeTabela = cl.getSimpleName().toUpperCase();
+		String sql = "DELETE FROM "+obj;
+		System.out.println(sql);
+		try(PreparedStatement ps = con.prepareStatement(sql)){
+			int res = ps.executeUpdate();
+			System.out.println(res + " registrados apagados");
+		}catch(SQLException e){
+			System.out.println("Erro ao realizar a operação de removoção da tabela " +obj);
 		}
-
-		sb.append("DROP TABLE ").append(nomeTabela);
-		return sb.toString();
+		return null;
 	}
 
 	@Override
 	protected PreparedStatement getSqlInsert(Connection con, Object obj) {
-		Class<Cliente> cl = (Class<Cliente>) obj.getClass();
+		Class<? extends Object> cl = obj.getClass();
 
 		StringBuilder sb = new StringBuilder();
 
+		// Declaração da tabela.
+		{
 			String nomeTabela;
 			if (cl.isAnnotationPresent(Tabela.class)) {
 
@@ -149,10 +156,11 @@ public class SqlGenImpl extends SqlGen{
 
 			}
 			sb.append("INSERT INTO ").append(nomeTabela).append(" (");
-
+		}
 
 		Field[] atributos = cl.getDeclaredFields();
 
+		// Declaração das colunas
 		{
 			for (int i = 0; i < atributos.length; i++) {
 
@@ -192,7 +200,7 @@ public class SqlGenImpl extends SqlGen{
 		sb.append(')');
 
 		String strSql = sb.toString();
-		System.out.println("SQL GERADO: " + strSql);
+		System.out.println(strSql);
 
 		PreparedStatement ps = null;
 		try {
@@ -201,6 +209,7 @@ public class SqlGenImpl extends SqlGen{
 			for (int i = 0; i < atributos.length; i++) {
 				Field field = atributos[i];
 
+				// importante não esquecer
 				field.setAccessible(true);
 
 				if (field.getType().equals(int.class)) {
@@ -222,72 +231,48 @@ public class SqlGenImpl extends SqlGen{
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
-
-		return ps;
+		return null;
 	}
 
 	@Override
 	protected PreparedStatement getSqlSelectAll(Connection con, Object obj) {
-		Class<Cliente> cl = (Class<Cliente>) obj.getClass();
-		StringBuilder sb = new StringBuilder();
-		String nomeTabela;
-		if (cl.isAnnotationPresent(Tabela.class)) {
-
-			Tabela anotacaoTabela = cl.getAnnotation(Tabela.class);
-			nomeTabela = anotacaoTabela.value();
-
-		} else {
-			nomeTabela = cl.getSimpleName().toUpperCase();
-
+		
+		Statement st = null;
+		ResultSet result = null;
+		StringBuilder sql = new StringBuilder();
+		
+		Class<Object> cl = (Class<Object>) obj.getClass();
+		
+		sql.append("SELECT * FROM ").append(cl.getSimpleName());
+		System.out.println(sql);
+		
+		try {
+			try {
+				
+				st = con.createStatement();
+				result = st.executeQuery(""+sql);
+				
+				while (result.next()) {
+					int id = result.getInt(1);
+					String nome = result.getString("nome");
+					System.out.println(id + " " + nome);
+				}
+			} finally {
+				if (st != null) st.close();
+				if (result != null) result.close();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		sb.append("SELECT * FROM ").append(nomeTabela);
-
-		String strSql = sb.toString();
-		System.out.println("SQL GERADO: " + strSql);
-
-		PreparedStatement ps = null;
-	try{
-		ps = con.prepareStatement(strSql);
-
-	} catch (SQLException e) {
-		e.printStackTrace();
-	} catch (IllegalArgumentException e) {
-		e.printStackTrace();
-	}
-
-		return ps;
+		
+		
+		return null;
 	}
 
 	@Override
 	protected PreparedStatement getSqlSelectById(Connection con, Object obj) {
-		Class<Cliente> cl = (Class<Cliente>) obj.getClass();
-		StringBuilder sb = new StringBuilder();
-		String nomeTabela;
-		if (cl.isAnnotationPresent(Tabela.class)) {
-
-			Tabela anotacaoTabela = cl.getAnnotation(Tabela.class);
-			nomeTabela = anotacaoTabela.value();
-
-		} else {
-			nomeTabela = cl.getSimpleName().toUpperCase();
-
-		}
-		sb.append("SELECT * FROM ").append(nomeTabela);
-
-		String strSql = sb.toString();
-		System.out.println("SQL GERADO: " + strSql);
-
-		PreparedStatement ps = null;
-	try{
-		ps = con.prepareStatement(strSql);
-
-	} catch (SQLException e) {
-		e.printStackTrace();
-	} catch (IllegalArgumentException e) {
-		e.printStackTrace();
-	}
-
-		return ps;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -301,7 +286,5 @@ public class SqlGenImpl extends SqlGen{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	public static void main(String[] args){
-		Cliente c = new Cliente();
-	}
+
 }

@@ -24,9 +24,9 @@ public class Execute extends SqlGenImpl{
 		String strCreateTable = getCreateTable(con, new Cliente());
 
 		//Istancia os objetos a serem inseridos
-		Cliente c1 = new Cliente(1, "Gabriel", "Avenida 01", "0000-1111", EstadoCivil.SOLTEIRO.getidestado());
-		Cliente c2 = new Cliente(2, "Gibimba", "Rua 02", "0000-2222", EstadoCivil.CASADO.getidestado());
-		Cliente c3 = new Cliente(3, "Alakart", "Avenida 03", "0000-3333", EstadoCivil.VIUVO.getidestado());
+		Cliente c1 = new Cliente(1, "Valesan", "Av 123", "0000-1234", EstadoCivil.SOLTEIRO.getidestado());
+		Cliente c2 = new Cliente(2, "Chuck", "Rua 456", "0000-2345", EstadoCivil.CASADO.getidestado());
+		Cliente c3 = new Cliente(3, "Alemao", "Av 789", "0000-3456", EstadoCivil.VIUVO.getidestado());
 
 		System.out.println("");
 		//Insere 3 objetos Clientes
