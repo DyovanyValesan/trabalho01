@@ -15,15 +15,15 @@ public class SqlGenImpl extends SqlGen {
 
 	@Override
 	protected String getCreateTable(Connection con, Object obj) {
-		
+
 		StringBuilder sql = new StringBuilder();
 		Class<Object> cl = (Class<Object>) obj.getClass();
-		
+
 		try{
-			
+
 			//Declaração da tabela
 			{
-				
+
 				String nomeTabela;
 				if (cl.isAnnotationPresent(Tabela.class)) {
 					Tabela anotacaoTabela = cl.getAnnotation(Tabela.class);
@@ -33,20 +33,20 @@ public class SqlGenImpl extends SqlGen {
 				}
 				sql.append("CREATE TABLE ").append(nomeTabela).append(" (");
 			}
-			
+
 			Field[] atributos = cl.getDeclaredFields();
-			
-			
+
+
 			//Declaração das colunas
 			{
-				
+
 				for(int i = 0; i < atributos.length; i++){
-					
+
 					Field field = atributos[i];
-					
+
 					String nomeColuna;
 					String tipoColuna;
-					
+
 					if (field.isAnnotationPresent(Coluna.class)) {
 						Coluna anotacaoColuna = field.getAnnotation(Coluna.class);
 
@@ -59,7 +59,7 @@ public class SqlGenImpl extends SqlGen {
 					} else {
 						nomeColuna = field.getName().toUpperCase();
 					}
-					
+
 					Class<?> tipoParametro = field.getType();
 
 					if (tipoParametro.equals(String.class)) {
@@ -75,11 +75,11 @@ public class SqlGenImpl extends SqlGen {
 					if (i > 0) {
 						sql.append(",");
 					}
-					
+
 					sql.append("\n\t").append(nomeColuna).append(' ').append(tipoColuna);
 				}
 			}
-			
+
 			// Declaração das chaves primárias
 			{
 
@@ -115,9 +115,9 @@ public class SqlGenImpl extends SqlGen {
 			}
 
 			sql.append("\n);");
-			
+
 			System.out.println(sql);
-			
+
 		} catch (SecurityException e) {
 			throw new RuntimeException(e);
 		}
@@ -236,22 +236,22 @@ public class SqlGenImpl extends SqlGen {
 
 	@Override
 	protected PreparedStatement getSqlSelectAll(Connection con, Object obj) {
-		
+
 		Statement st = null;
 		ResultSet result = null;
 		StringBuilder sql = new StringBuilder();
-		
+
 		Class<Object> cl = (Class<Object>) obj.getClass();
-		
+
 		sql.append("SELECT * FROM ").append(cl.getSimpleName());
 		System.out.println(sql);
-		
+
 		try {
 			try {
-				
+
 				st = con.createStatement();
 				result = st.executeQuery(""+sql);
-				
+
 				while (result.next()) {
 					int id = result.getInt(1);
 					String nome = result.getString("nome");
@@ -264,8 +264,8 @@ public class SqlGenImpl extends SqlGen {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		
+
+
 		return null;
 	}
 

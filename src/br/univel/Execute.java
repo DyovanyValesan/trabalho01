@@ -24,9 +24,9 @@ public class Execute extends SqlGenImpl{
 		String strCreateTable = getCreateTable(con, new Cliente());
 
 		//Istancia os objetos a serem inseridos
-		Cliente c1 = new Cliente(1, "Valesan", "Av 123", "0000-1234", EstadoCivil.SOLTEIRO.getidestado());
-		Cliente c2 = new Cliente(2, "Chuck", "Rua 456", "0000-2345", EstadoCivil.CASADO.getidestado());
-		Cliente c3 = new Cliente(3, "Alemao", "Av 789", "0000-3456", EstadoCivil.VIUVO.getidestado());
+		Cliente c1 = new Cliente(1, "Valesan", "Av 123", "1111-1111", EstadoCivil.SOLTEIRO.getidestado());
+		Cliente c2 = new Cliente(2, "Alemao", "Rua 456", "2222-2222", EstadoCivil.CASADO.getidestado());
+		Cliente c3 = new Cliente(3, "Tião", "Av 789", "3333-3333", EstadoCivil.VIUVO.getidestado());
 
 		System.out.println("");
 		//Insere 3 objetos Clientes
@@ -53,7 +53,7 @@ public class Execute extends SqlGenImpl{
 		clientes.buscar(1);
 
 		//Altera o objeto id 1
-		c1.setNome("Valesan");
+		c1.setNome("Gabriel");
 		clientes.atualizar(c1);
 		PreparedStatement pu = getSqlUpdateById(con, c1);
 
@@ -77,11 +77,12 @@ public class Execute extends SqlGenImpl{
 
 	private void AbrirConexao(){
 			try{
+				String DRIVE_CLASS = "org.h2.Drive";
 				String url = "jdbc:h2:./BancoValesan";
 				String user = "sa";
 				String pass = "sa";
 				con = DriverManager.getConnection(url, user, pass);
-				System.out.println("Conexão Realizada!");
+				System.out.println("Conexão Realizada! \n");
 			}catch(SQLException e){
 				System.out.println("Erro ao realizar a conexão com o banco de dados!");
 			}
@@ -89,7 +90,7 @@ public class Execute extends SqlGenImpl{
 	}
 
 	public static void main(String[] args) throws SQLException{
-		System.out.println("----|Mecânismo Genérico para persistência de objetos|----\n");
+		System.out.println("Mecânismo Persistência de Objetos");
 		new Execute();
 	}
 

@@ -14,7 +14,6 @@ public interface Dao<T, K> {
 
 	public List<T> listarTodos();
 
-	public void create(T t);
+	void Salvar(T t);
 
-	public void delete(T t);
 }
